@@ -54,7 +54,7 @@ public class WebServices : MonoBehaviour
 
     private IEnumerator Post(WWWForm form)
     {
-        using (UnityWebRequest webRequest = UnityWebRequest.Post("https://ptsv2.com/t/w3tw1-1665292876/post", form))
+        using (UnityWebRequest webRequest = UnityWebRequest.Post("https://lf50cu4aj3.execute-api.us-east-1.amazonaws.com/staging/students", form))
         {
             yield return webRequest.SendWebRequest();
         }
