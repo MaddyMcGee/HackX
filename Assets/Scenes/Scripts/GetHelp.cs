@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class GetHelp : MonoBehaviour
 {
-    public static void CallForHelp()
+    public void CallForHelp()
     {
 
     }
