@@ -6,57 +6,57 @@ using UnityEngine.Networking;
 public class WebServices : MonoBehaviour
 {
     [SerializeField]
-    private string name = "Brutus";
-    private bool didShot;
-    private bool didScalpel;
-    private bool needsHelp;
+    private string userName = "Brutus";
+    private Contents contents;
 
     public void Start()
     {
-        needsHelp = false;
-        didShot = false;
-        didScalpel = false;
+        contents = new Contents();
+        contents.needsHelp = false;
+        contents.didShot = false;
+        contents.didScalpel = false;
+        contents.name = userName;
     }
 
     public void CallForHelp()
     {
-        needsHelp = true;
-        StartCoroutine(Post(BuildForm()));
+        contents.needsHelp = true;
+        StartCoroutine(Post());
     }
 
     public void ResolveHelp()
     {
-        needsHelp = false;
-        StartCoroutine(Post(BuildForm()));
+        contents.needsHelp = false;
+        StartCoroutine(Post());
     }
 
     public void CompleteShot()
     {
-        didShot = true;
-        StartCoroutine(Post(BuildForm()));
+        contents.didShot = true;
+        StartCoroutine(Post());
     }
 
     public void CompleteSlice()
     {
-        didScalpel = true;
-        StartCoroutine(Post(BuildForm()));
+        contents.didScalpel = true;
+        StartCoroutine(Post());
     }
 
-    private WWWForm BuildForm()
+    private IEnumerator Post()
     {
-        WWWForm form = new WWWForm();
-        form.AddField("name", name);
-        form.AddField("didShot", didShot ? "true" : "false");
-        form.AddField("didScalpel", didScalpel ? "true" : "false");
-        form.AddField("needsHelp", needsHelp ? "true" : "false");
-        return form;
-    }
-
-    private IEnumerator Post(WWWForm form)
-    {
-        using (UnityWebRequest webRequest = UnityWebRequest.Post("https://lf50cu4aj3.execute-api.us-east-1.amazonaws.com/staging/students", form))
+        using (UnityWebRequest webRequest = 
+            UnityWebRequest.Put("https://lf50cu4aj3.execute-api.us-east-1.amazonaws.com/staging/students", 
+            JsonUtility.ToJson(contents)))
         {
             yield return webRequest.SendWebRequest();
         }
     }
+
+}
+public class Contents
+{
+    public string name;
+    public bool didShot;
+    public bool didScalpel;
+    public bool needsHelp;
 }
