@@ -4,31 +4,62 @@ using UnityEngine;
 
 public class HandGrabber : MonoBehaviour
 {
+    [SerializeField]
+    private bool isRight;
     Coroutine carry;
     Collider thing;
-    bool isCarrying;
+
     // Start is called before the first frame update
     void Start()
     {
-        isCarrying = false;
+        thing = null;
+        carry = null;
+        XRInput xrInput = new XRInput();
+        if (isRight)
+        {
+            xrInput.Hands.RightGrip.Enable();
+            xrInput.Hands.RightGrip.started += m => Grab();
+            xrInput.Hands.RightGrip.canceled += m => Release();
+        }
+        else
+        {
+            xrInput.Hands.LeftGrip.Enable();
+            xrInput.Hands.LeftGrip.started += m => Grab();
+            xrInput.Hands.LeftGrip.canceled += m => Release();
+        }
+    }
+
+    private void Grab()
+    {
+        if (thing != null)
+        {
+            carry = StartCoroutine(CarryThing(thing.gameObject));
+            thing = null;
+        }
+    }
+
+    private void Release()
+    {
+        if (carry != null)
+        {
+            StopCoroutine(carry);
+            carry = null;
+        }
     }
 
     private void OnTriggerEnter(Collider other)
     {
-        if (!isCarrying && other.CompareTag("Grabable"))
+        if (other.CompareTag("Grabable"))
         {
             thing = other;
-            carry = StartCoroutine(CarryThing(other.gameObject));
-            isCarrying = true;
         }
     }
 
     private void OnTriggerExit(Collider other)
     {
-        if (isCarrying && other.Equals(thing))
+        if (other.Equals(thing))
         {
-            isCarrying = false;
-            StopCoroutine(carry);
+            thing = null;
         }
     }
 
@@ -38,6 +69,8 @@ public class HandGrabber : MonoBehaviour
         {
             yield return new WaitForFixedUpdate();
             obj.transform.position = transform.position;
+            //obj.GetComponent<Rigidbody>().constraints;
+            //RigidbodyConstraints.
         }
     }
 
