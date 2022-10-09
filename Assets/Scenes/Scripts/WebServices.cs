@@ -1,62 +1,70 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Text;
 using UnityEngine;
 using UnityEngine.Networking;
 
 public class WebServices : MonoBehaviour
 {
     [SerializeField]
-    private string name = "Brutus";
-    private bool didShot;
-    private bool didScalpel;
-    private bool needsHelp;
+    private string userName = "Brutus";
+    private Contents contents;
 
     public void Start()
     {
-        needsHelp = false;
-        didShot = false;
-        didScalpel = false;
+        contents = new Contents();
+        contents.needsHelp = false;
+        contents.didShot = false;
+        contents.didScalpel = false;
+        contents.name = userName;
     }
 
     public void CallForHelp()
     {
-        needsHelp = true;
-        StartCoroutine(Post(BuildForm()));
+        contents.needsHelp = true;
+        StartCoroutine(Post(contents));
     }
 
     public void ResolveHelp()
     {
-        needsHelp = false;
-        StartCoroutine(Post(BuildForm()));
+        contents.needsHelp = false;
+        StartCoroutine(Post(contents));
     }
 
     public void CompleteShot()
     {
-        didShot = true;
-        StartCoroutine(Post(BuildForm()));
+        contents.didShot = true;
+        StartCoroutine(Post(contents));
     }
 
     public void CompleteSlice()
     {
-        didScalpel = true;
-        StartCoroutine(Post(BuildForm()));
+        contents.didScalpel = true;
+        StartCoroutine(Post(contents));
     }
 
-    private WWWForm BuildForm()
+    private IEnumerator Post(Contents c)
     {
-        WWWForm form = new WWWForm();
-        form.AddField("name", name);
-        form.AddField("didShot", didShot ? "true" : "false");
-        form.AddField("didScalpel", didScalpel ? "true" : "false");
-        form.AddField("needsHelp", needsHelp ? "true" : "false");
-        return form;
+        yield return Post("https://lf50cu4aj3.execute-api.us-east-1.amazonaws.com/staging/students", JsonUtility.ToJson(c));
     }
 
-    private IEnumerator Post(WWWForm form)
+    private IEnumerator Post(string url, string bodyJsonString)
     {
-        using (UnityWebRequest webRequest = UnityWebRequest.Post("https://lf50cu4aj3.execute-api.us-east-1.amazonaws.com/staging/students", form))
-        {
-            yield return webRequest.SendWebRequest();
-        }
+        var request = new UnityWebRequest(url, "POST");
+        byte[] bodyRaw = Encoding.UTF8.GetBytes(bodyJsonString);
+        request.uploadHandler = (UploadHandler)new UploadHandlerRaw(bodyRaw);
+        request.downloadHandler = (DownloadHandler)new DownloadHandlerBuffer();
+        request.SetRequestHeader("Content-Type", "application/json");
+        yield return request.SendWebRequest();
+        Debug.Log("Status Code: " + request.responseCode);
     }
+
+
+}
+public class Contents
+{
+    public string name;
+    public bool didShot;
+    public bool didScalpel;
+    public bool needsHelp;
 }
